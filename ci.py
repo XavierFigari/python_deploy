@@ -8,16 +8,23 @@ username = 'xavcampus'
 token = '6fcae02b547afa1f4f83443e4dbd63e4ff66a5eb'
 host = 'www.pythonanywhere.com'
 domain_name = 'xavcampus.pythonanywhere.com'
+console_id = 34037823
 
 headers_json = {
     'Authorization': f'Token {token}',
     'Content-Type': 'application/json',
 }
+headers = {
+    'Authorization': f'Token {token}'
+}
+
+# URL for the get_console_output endpoint
+url_get_latest_output = f'https://www.pythonanywhere.com/api/v0/user/{username}/consoles/{console_id}/get_latest_output/'
+
 
 def deploiement_access():
     send_push()
     time.sleep(20)
-    console_id = 34037823
     # time.sleep(15)
     print(console_id)
     send_pull(console_id)
@@ -27,9 +34,6 @@ def deploiement_access():
 
 
 def reload_site():
-    headers = {
-        'Authorization': f'Token {token}'
-    }
     url = f"https://{host}/api/v0/user/{username}/webapps/{domain_name}/reload/"
     response = requests.post(url, headers=headers)
     print("reload_site : " + str(response.status_code))
@@ -41,9 +45,36 @@ def reload_site():
 
 
 
+
+# Function to get the console output
+def get_console_output():
+    response = requests.get(url_get_latest_output, headers=headers)
+    if response.status_code == 200:
+        return response.json()['output']
+    else:
+        print(f'Failed to get console output. Status code: {response.status_code}')
+        return None
+
+
 def send_pull(id_console):
     url = f"https://{host}/api/v0/user/{username}/consoles/{id_console}/send_input/"
-    response = requests.post(url, headers=headers_json, json={'input': "cd ~/mysite && git pull origin main\n"})
+    response = requests.post(url, headers=headers_json, json={'input': "cd ~/mysite && git pull origin main; echo $!\n"})
+
+    # Wait a bit for the command to execute
+    time.sleep(2)  # Adjust the sleep time as needed
+
+    # Get the console output
+    output = get_console_output()
+    print(output)
+
+    # Check for the return status
+    # This part assumes your command includes an echo of the $? variable (if using bash), like this:
+    # command = 'your_command_here; echo $?'
+    if output:
+        lines = output.splitlines()
+        return_status = int(lines[-1])  # Assuming the last line contains the return status
+        print(f'Return status: {return_status}')
+
     print("send_pull : " + str(response.status_code))
     if response.status_code == 200:
         print("le repo a été téléchargé")
@@ -88,3 +119,4 @@ def send_push():
 
 
 deploiement_access()
+
