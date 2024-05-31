@@ -1,2 +1,2 @@
-<p>résultat :</p>
-    <p>{{result}} hello</p>
+<p>Résultat : liste des nombres jusqu'à {{number}}</p>
+<p>{{result}}</p>

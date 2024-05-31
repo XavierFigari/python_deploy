@@ -13,7 +13,7 @@ def fb_access():
     if request.GET.num:
         number = request.GET.number
 
-        return template('display-result', result=fizzbuzz.main(number))
+        return template('display-result', number=number, result=fizzbuzz.main(number))
     else:
         return template('fb_access.tpl')
 
