@@ -9,6 +9,10 @@ token = '6fcae02b547afa1f4f83443e4dbd63e4ff66a5eb'
 host = 'www.pythonanywhere.com'
 domain_name = 'xavcampus.pythonanywhere.com'
 
+headers_json = {
+    'Authorization': f'Token {token}',
+    'Content-Type': 'application/json',
+}
 
 def deploiement_access():
     send_push()
@@ -36,13 +40,10 @@ def reload_site():
         print(response.json())
 
 
+
 def send_pull(id_console):
-    headers = {
-        'Authorization': f'Token {token}',
-        'Content-Type': 'application/json',
-    }
     url = f"https://{host}/api/v0/user/{username}/consoles/{id_console}/send_input/"
-    response = requests.post(url, headers=headers, json={'input': "cd ~/mysite && git pull origin main\n"})
+    response = requests.post(url, headers=headers_json, json={'input': "cd ~/mysite && git pull origin main\n"})
     print("send_pull : " + str(response.status_code))
     if response.status_code == 200:
         print("le repo a été téléchargé")
@@ -51,15 +52,11 @@ def send_pull(id_console):
 
 
 def open_console():
-    headers = {
-        'Authorization': f'Token {token}',
-        'Content-Type': 'application/json',
-    }
     url = f"Https://{host}/api/v0/user/{username}/consoles/"
     data = {
         'executable': "/bin/bash"
     }
-    response = requests.post(url, headers=headers, data=json.dumps(data))
+    response = requests.post(url, headers=headers_json, data=json.dumps(data))
     print("open console : " + str(response.status_code))
     if response.status_code == 201 or response.status_code == 200:
         console_id = response.json()['id']
@@ -85,7 +82,7 @@ def kill_them_all(id):
 
 
 def send_push():
-    message = input("Tapes ton message pour commit :")
+    message = input("Tape ton message pour commit : ")
     subprocess.run(["git", "commit", "-am", f"{message}"])
     subprocess.run(["git", "push", "origin", "main"])
 
