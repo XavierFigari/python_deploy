@@ -23,10 +23,9 @@ url_get_latest_output = f'https://www.pythonanywhere.com/api/v0/user/{username}/
 
 
 def deploiement_access():
-    send_push()
-    time.sleep(20)
-    # time.sleep(15)
-    print(console_id)
+    # send_push()
+    # time.sleep(20)
+    print("Console : ", console_id)
     send_pull(console_id)
     time.sleep(10)
     reload_site()
@@ -58,13 +57,15 @@ def get_console_output():
 
 def send_pull(id_console):
     url = f"https://{host}/api/v0/user/{username}/consoles/{id_console}/send_input/"
-    response = requests.post(url, headers=headers_json, json={'input': "cd ~/mysite && git pull origin main; echo $!\n"})
+    response = requests.post(url, headers=headers_json, json={'input': "cd ~/mysite || { echo 'Failed to change directory to ~/mysite'; exit 1;}" }) #  && git pull origin main && echo $!
 
     # Wait a bit for the command to execute
-    time.sleep(2)  # Adjust the sleep time as needed
+    # time.sleep(2)  # Adjust the sleep time as needed
 
     # Get the console output
     output = get_console_output()
+    print("response = ", response)
+
     print(output)
 
     # Check for the return status
@@ -72,6 +73,14 @@ def send_pull(id_console):
     # command = 'your_command_here; echo $?'
     if output:
         lines = output.splitlines()
+        print("Lines   ")
+        print("========")
+        print(lines)
+        print("----------------------------------")
+        print("Dernière ligne:")
+        print(lines[len(lines)-1])
+        print(lines[-1])
+
         return_status = int(lines[-1])  # Assuming the last line contains the return status
         print(f'Return status: {return_status}')
 
@@ -120,3 +129,70 @@ def send_push():
 
 deploiement_access()
 
+
+
+
+=====================================================
+
+Code à intégrer :
+
+import requests
+import time
+
+# Define your API token, username, and console ID
+API_TOKEN = 'your_api_token'
+USERNAME = 'your_username'
+CONSOLE_ID = 'your_console_id'
+
+# Construct the commands as a single script
+commands = """
+cd ~/mysite || { echo "Failed to change directory to ~/mysite"; exit 1; }
+git pull origin main || { echo "Failed to pull from git repository"; exit 1; }
+echo "All commands executed successfully"
+"""
+
+# URL for the send_input endpoint
+send_input_url = f'https://www.pythonanywhere.com/api/v0/user/{USERNAME}/consoles/{CONSOLE_ID}/send_input/'
+
+# Headers including the authorization token
+headers = {
+    'Authorization': f'Token {API_TOKEN}'
+}
+
+# Data to be sent (the commands script)
+data = {
+    'input': commands + '\n'  # Adding a newline character to simulate pressing Enter
+}
+
+# Sending the request to send_input endpoint
+response = requests.post(send_input_url, headers=headers, data=data)
+
+# Check if the request was successful
+if response.status_code == 200:
+    print('Commands sent successfully.')
+else:
+    print(f'Failed to send commands. Status code: {response.status_code}')
+    exit(1)
+
+# URL for the get_console_output endpoint
+get_output_url = f'https://www.pythonanywhere.com/api/v0/user/{USERNAME}/consoles/{CONSOLE_ID}/get_latest_output/'
+
+# Function to get the console output
+def get_console_output():
+    response = requests.get(get_output_url, headers=headers)
+    if response.status_code == 200:
+        return response.json()['output']
+    else:
+        print(f'Failed to get console output. Status code: {response.status_code}')
+        return None
+
+# Wait a bit for the command to execute
+time.sleep(2)  # Adjust the sleep time as needed
+
+# Get the console output
+output = get_console_output()
+if output:
+    print("Console output:")
+    print(output)
+else:
+    print("No output received.")
