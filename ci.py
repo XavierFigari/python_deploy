@@ -4,16 +4,16 @@ import time
 
 import requests
 
-username = 'aphunk'
-token = '57cb598eba2bf355230b62c10008af8fb03a1ad4'
+username = 'xavcampus'
+token = '6fcae02b547afa1f4f83443e4dbd63e4ff66a5eb'
 host = 'www.pythonanywhere.com'
-domain_name = 'aphunk.pythonanywhere.com'
+domain_name = 'xavcampus.pythonanywhere.com'
 
 
 def deploiement_access():
     send_push()
     time.sleep(20)
-    console_id = 34039547
+    console_id = 34037823
     # time.sleep(15)
     print(console_id)
     send_pull(console_id)
